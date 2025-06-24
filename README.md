@@ -1,6 +1,7 @@
 # Moments - 私人朋友圈
 基于notion创建独属于自己的朋友圈，记录所思所想
 
+**本仓库所有代码使用Cursor生成**
 
 ## ✨ 特性
 
@@ -116,43 +117,6 @@ docker run -d \
 | `ALLOWED_IMAGE_EXTENSIONS` | ❌ | `jpg,jpeg,png,gif,webp` | 允许的图片格式 |
 | `ALLOWED_VIDEO_EXTENSIONS` | ❌ | `mp4,mov,avi,mkv` | 允许的视频格式 |
 | `UPLOAD_TO_NOTION` | ❌ | `false` | 是否上传文件到 Notion |
-
-## 🔐 身份验证
-
-为了保护您的私人内容，本应用支持密码保护功能：
-
-### 启用密码保护
-
-1. **设置访问密码**
-   在 `.env` 文件中添加：
-   ```bash
-   AUTH_PASSWORD=your_secure_password_here
-   ```
-
-2. **设置 JWT 密钥**（可选）
-   ```bash
-   JWT_SECRET=your_very_long_and_random_jwt_secret_key_here
-   ```
-
-3. **自定义会话时间**（可选）
-   ```bash
-   SESSION_EXPIRE_HOURS=24  # 24小时后需要重新登录
-   ```
-
-### 安全建议
-
-- 使用强密码（至少 12 位，包含大小写字母、数字和特殊字符）
-- 定期更换密码
-- 在生产环境中设置 `JWT_SECRET` 为随机的强密钥
-- 不要在公开仓库中暴露密码
-- 定期检查访问日志
-
-### 禁用密码保护
-
-如果不需要密码保护，只需将 `AUTH_PASSWORD` 留空或删除该环境变量即可：
-```bash
-# AUTH_PASSWORD=  # 留空
-```
 
 
 ## 🚀 开发环境
