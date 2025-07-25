@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bookmark, Tag, MoreHorizontal, ExternalLink, Trash2 } from 'lucide-react';
+import { Bookmark, Tag, MoreHorizontal, ExternalLink, Trash2, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Moment, STATUS_COLORS, UserConfig } from '@/types';
 import { momentsApi } from '@/utils/api';
@@ -7,6 +7,7 @@ import { formatDate, buildImageUrl, generateImageGridClass } from '@/utils/forma
 import { getUserConfig } from '@/utils/config';
 import ImageGrid from './ImageGrid';
 import VideoPlayer from './VideoPlayer';
+import EditMomentModal from './EditMomentModal';
 
 interface MomentCardProps {
   moment: Moment;
@@ -20,6 +21,7 @@ export default function MomentCard({ moment, onDelete, onUpdate, config }: Momen
   const [showActions, setShowActions] = useState(false);
   const [bookmarked, setBookmarked] = useState(moment.favorited || false);
   const [isToggleFavorite, setIsToggleFavorite] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // 使用配置或默认配置
   const userConfig = config || getUserConfig();
@@ -57,6 +59,11 @@ export default function MomentCard({ moment, onDelete, onUpdate, config }: Momen
 
   const handleViewInNotion = () => {
     window.open(moment.url, '_blank');
+  };
+
+  const handleEdit = () => {
+    setShowEditModal(true);
+    setShowActions(false);
   };
 
   const getStatusConfig = (status: string) => {
@@ -145,6 +152,16 @@ export default function MomentCard({ moment, onDelete, onUpdate, config }: Momen
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      handleEdit();
+                    }}
+                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>编辑动态</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleViewInNotion();
                       setShowActions(false);
                     }}
@@ -174,7 +191,7 @@ export default function MomentCard({ moment, onDelete, onUpdate, config }: Momen
           {/* 内容 */}
           <div className="mb-3">
             <p className="text-slate-800 dark:text-slate-100 whitespace-pre-wrap leading-relaxed text-sm">
-              {moment.content}
+              {moment.content || moment.title}
             </p>
           </div>
 
@@ -237,6 +254,14 @@ export default function MomentCard({ moment, onDelete, onUpdate, config }: Momen
           </div>
         </div>
       </div>
+      
+      {/* 编辑模态框 */}
+      <EditMomentModal
+        moment={moment}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onUpdate={onUpdate}
+      />
     </article>
   );
 } 

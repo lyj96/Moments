@@ -49,14 +49,35 @@ export class NotionService {
     }
   }
 
-  private parseNotionPage(page: any): MomentResponse {
+  private async parseNotionPage(page: any): Promise<MomentResponse> {
     const properties = page.properties;
     
     const title = properties.Title?.title?.[0]?.text?.content || '';
-    const content = properties.Content?.rich_text?.[0]?.text?.content || '';
     const tags = properties.Tags?.multi_select?.map((tag: any) => tag.name) || [];
     const status = properties.Status?.select?.name || MomentStatus.FLASH;
     const favorited = properties.Favorited?.checkbox || false;
+    
+    // 从页面内容中获取内容
+    let content = '';
+    try {
+      const blocks = await this.notion.blocks.children.list({
+        block_id: page.id,
+      });
+      
+      // 获取第一个段落块的内容
+      if (blocks.results.length > 0) {
+        const firstBlock = blocks.results[0] as any;
+        if (firstBlock.type === 'paragraph' && firstBlock.paragraph?.rich_text) {
+          content = firstBlock.paragraph.rich_text
+            .map((text: any) => text.text?.content || '')
+            .join('');
+        }
+      }
+    } catch (error) {
+      console.error('获取页面内容失败:', error);
+      // 如果获取内容失败，使用标题作为内容
+      content = title;
+    }
     
     // 解析图片
     const images = properties.Images?.files?.map((file: any) => {
@@ -95,21 +116,15 @@ export class NotionService {
 
   async createMoment(momentData: MomentCreate, baseUrl?: string): Promise<MomentResponse> {
     try {
+      // 标题限制为20个字符，取内容的前20个字符
+      const titleContent = momentData.content.slice(0, 20);
+      
       const properties: any = {
         Title: {
           title: [
             {
               text: {
-                content: momentData.title,
-              },
-            },
-          ],
-        },
-        Content: {
-          rich_text: [
-            {
-              text: {
-                content: momentData.content,
+                content: titleContent,
               },
             },
           ],
@@ -186,6 +201,22 @@ export class NotionService {
       const page = await this.notion.pages.create({
         parent: { database_id: this.databaseId },
         properties,
+        children: [
+          {
+            object: 'block',
+            type: 'paragraph',
+            paragraph: {
+              rich_text: [
+                {
+                  type: 'text',
+                  text: {
+                    content: momentData.content,
+                  },
+                },
+              ],
+            },
+          },
+        ],
       });
 
       return this.parseNotionPage(page);
@@ -244,20 +275,10 @@ export class NotionService {
 
         if (filters.search) {
           queryParams.filter.and.push({
-            or: [
-              {
-                property: 'Title',
-                title: {
-                  contains: filters.search,
-                },
-              },
-              {
-                property: 'Content',
-                rich_text: {
-                  contains: filters.search,
-                },
-              },
-            ],
+            property: 'Title',
+            title: {
+              contains: filters.search,
+            },
           });
         }
 
@@ -268,7 +289,7 @@ export class NotionService {
       }
 
       const response = await this.notion.databases.query(queryParams);
-      const moments = response.results.map(page => this.parseNotionPage(page));
+      const moments = await Promise.all(response.results.map(page => this.parseNotionPage(page)));
 
       return {
         moments,
@@ -301,8 +322,9 @@ export class NotionService {
       }
 
       if (momentData.content !== undefined) {
-        properties.Content = {
-          rich_text: [{ text: { content: momentData.content } }],
+        // 更新标题为内容的前20个字符
+        properties.Title = {
+          title: [{ text: { content: momentData.content.slice(0, 20) } }],
         };
       }
 
@@ -379,7 +401,47 @@ export class NotionService {
         properties,
       });
 
-      return this.parseNotionPage(page);
+      // 如果内容有更新，同时更新页面内容
+      if (momentData.content !== undefined) {
+        try {
+          // 先删除现有的内容块
+          const existingBlocks = await this.notion.blocks.children.list({
+            block_id: momentId,
+          });
+          
+          if (existingBlocks.results.length > 0) {
+            // 删除第一个块（内容块）
+            await this.notion.blocks.delete({
+              block_id: existingBlocks.results[0].id,
+            });
+          }
+          
+          // 添加新的内容块
+          await this.notion.blocks.children.append({
+            block_id: momentId,
+            children: [
+              {
+                object: 'block',
+                type: 'paragraph',
+                paragraph: {
+                  rich_text: [
+                    {
+                      type: 'text',
+                      text: {
+                        content: momentData.content,
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          });
+        } catch (error) {
+          console.error('更新页面内容失败:', error);
+        }
+      }
+
+      return await this.parseNotionPage(page);
     } catch (error) {
       throw new Error(`更新动态失败: ${error}`);
     }
@@ -423,24 +485,14 @@ export class NotionService {
       const response = await this.notion.databases.query({
         database_id: this.databaseId,
         filter: {
-          or: [
-            {
-              property: 'Title',
-              rich_text: {
-                contains: query,
-              },
-            },
-            {
-              property: 'Content',
-              rich_text: {
-                contains: query,
-              },
-            },
-          ],
+          property: 'Title',
+          title: {
+            contains: query,
+          },
         },
       });
 
-      return response.results.map(page => this.parseNotionPage(page));
+      return await Promise.all(response.results.map(page => this.parseNotionPage(page)));
     } catch (error) {
       throw new Error(`搜索动态失败: ${error}`);
     }
@@ -458,7 +510,7 @@ export class NotionService {
         },
       });
 
-      return response.results.map(page => this.parseNotionPage(page));
+      return await Promise.all(response.results.map(page => this.parseNotionPage(page)));
     } catch (error) {
       throw new Error(`按状态获取动态失败: ${error}`);
     }
@@ -476,7 +528,7 @@ export class NotionService {
         },
       });
 
-      return response.results.map(page => this.parseNotionPage(page));
+      return await Promise.all(response.results.map(page => this.parseNotionPage(page)));
     } catch (error) {
       throw new Error(`按标签获取动态失败: ${error}`);
     }

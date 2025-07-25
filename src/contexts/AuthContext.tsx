@@ -25,12 +25,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('/api/auth/status');
+      // 添加时间戳防止缓存
+      const response = await fetch(`/api/auth/status?t=${Date.now()}`, {
+        method: 'GET',
+        credentials: 'include', // 确保发送cookies
+        cache: 'no-cache', // 禁用缓存
+      });
       const data = await response.json();
       
       if (data.success) {
         setAuthEnabled(data.authEnabled);
         setIsAuthenticated(data.authenticated);
+      } else {
+        // 如果请求失败，假设未认证
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.error('检查身份验证状态失败:', error);
@@ -49,6 +57,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
+        credentials: 'include',
       });
       
       const data = await response.json();
@@ -67,7 +76,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     checkAuthStatus();
-  }, []);
+    
+    // 设置定期检查认证状态（每5分钟检查一次）
+    const interval = setInterval(() => {
+      if (authEnabled && isAuthenticated) {
+        checkAuthStatus();
+      }
+    }, 5 * 60 * 1000);
+    
+    // 监听页面可见性变化，当页面重新可见时检查认证状态
+    const handleVisibilityChange = () => {
+      if (!document.hidden && authEnabled && isAuthenticated) {
+        checkAuthStatus();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [authEnabled, isAuthenticated]);
 
   const value: AuthContextType = {
     isAuthenticated,

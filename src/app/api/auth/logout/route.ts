@@ -5,10 +5,17 @@ export async function POST() {
   try {
     clearAuthCookie();
     
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: '登出成功'
     });
+
+    // 添加缓存控制头
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
   } catch (error) {
     console.error('登出错误:', error);
     return NextResponse.json(

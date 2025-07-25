@@ -4,6 +4,7 @@ export interface AuthStatus {
   authEnabled: boolean;
   authenticated: boolean;
   success: boolean;
+  message?: string;
 }
 
 export interface LoginResponse {
@@ -14,7 +15,11 @@ export interface LoginResponse {
 // 检查身份验证状态
 export async function checkAuthStatus(): Promise<AuthStatus> {
   try {
-    const response = await fetch('/api/auth/status');
+    const response = await fetch(`/api/auth/status?t=${Date.now()}`, {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-cache',
+    });
     const data = await response.json();
     return data;
   } catch (error) {
@@ -35,6 +40,8 @@ export async function login(password: string): Promise<LoginResponse> {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
+      cache: 'no-cache',
       body: JSON.stringify({ password }),
     });
 
@@ -54,6 +61,8 @@ export async function logout(): Promise<LoginResponse> {
   try {
     const response = await fetch('/api/auth/logout', {
       method: 'POST',
+      credentials: 'include',
+      cache: 'no-cache',
     });
 
     const data = await response.json();

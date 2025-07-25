@@ -15,7 +15,7 @@ export interface Moment {
 export type MomentStatus = '闪念' | '待办' | '进行中' | '已完成';
 
 export interface MomentCreate {
-  title: string;
+  title?: string;
   content: string;
   tags: string[];
   status: MomentStatus;

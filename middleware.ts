@@ -28,21 +28,34 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 检查身份验证状态
-  const authenticated = await isAuthenticated(request);
+  try {
+    // 检查身份验证状态
+    const authenticated = await isAuthenticated(request);
 
-  if (!authenticated) {
+    if (!authenticated) {
+      console.log(`未授权访问: ${pathname}`);
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: '未授权访问，请先登录',
+          code: 'UNAUTHORIZED'
+        },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.next();
+  } catch (error) {
+    console.error('中间件认证检查错误:', error);
     return NextResponse.json(
       { 
         success: false, 
-        message: '未授权访问，请先登录',
-        code: 'UNAUTHORIZED'
+        message: '服务器错误',
+        code: 'SERVER_ERROR'
       },
-      { status: 401 }
+      { status: 500 }
     );
   }
-
-  return NextResponse.next();
 }
 
 export const config = {

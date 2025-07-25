@@ -33,7 +33,19 @@ export async function generateToken(): Promise<string> {
 export async function verifyToken(token: string): Promise<boolean> {
   try {
     const secret = new TextEncoder().encode(JWT_SECRET);
-    await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, secret);
+    
+    // 检查token是否包含必要的字段
+    if (!payload.authenticated || !payload.iat || !payload.exp) {
+      return false;
+    }
+    
+    // 检查token是否过期
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (payload.exp && currentTime > payload.exp) {
+      return false;
+    }
+    
     return true;
   } catch {
     return false;
@@ -45,12 +57,16 @@ export async function setAuthCookie(): Promise<string> {
   const token = await generateToken();
   const cookieStore = cookies();
   
+  // 计算过期时间（秒）
+  const maxAgeSeconds = SESSION_EXPIRE_HOURS * 60 * 60;
+  
   cookieStore.set('auth-token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: SESSION_EXPIRE_HOURS * 60 * 60, // 转换为秒
+    maxAge: maxAgeSeconds,
     path: '/',
+    expires: new Date(Date.now() + maxAgeSeconds * 1000),
   });
   
   return token;
@@ -74,8 +90,20 @@ export async function isAuthenticated(request?: NextRequest): Promise<boolean> {
     
     if (!token) return false;
     
-    return await verifyToken(token);
+    // 验证token的有效性和过期时间
+    const isValid = await verifyToken(token);
+    
+    // 如果token无效，清除cookie
+    if (!isValid && !request) {
+      clearAuthCookie();
+    }
+    
+    return isValid;
   } catch {
+    // 如果出现异常，清除cookie并返回false
+    if (!request) {
+      clearAuthCookie();
+    }
     return false;
   }
 }

@@ -25,7 +25,6 @@ export default function CreateMomentBox({ onSuccess, config }: CreateMomentBoxPr
   const userConfig = config || getUserConfig();
   
   const [formData, setFormData] = useState<MomentCreate>({
-    title: '',
     content: '',
     tags: [],
     status: userConfig.defaultMomentStatus,
@@ -62,7 +61,6 @@ export default function CreateMomentBox({ onSuccess, config }: CreateMomentBoxPr
     setFormData(prev => ({
       ...prev,
       content: value,
-      title: value.slice(0, 50) || '灵感时刻',
     }));
   };
 

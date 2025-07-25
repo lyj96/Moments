@@ -29,6 +29,8 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
+        cache: 'no-cache',
         body: JSON.stringify({ password }),
       });
 
