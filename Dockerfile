@@ -48,9 +48,10 @@ RUN mkdir -p /app/public/uploads/images
 RUN mkdir -p /app/public/uploads/videos
 RUN chown -R nextjs:nodejs /app/public/uploads
 
-# 复制构建产物
+# 复制构建产物 - 修复静态资源复制路径
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/server ./.next/server
 
 # 切换到非 root 用户
 USER nextjs

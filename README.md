@@ -52,12 +52,12 @@ cp env.template .env
 # 必填项
 NOTION_API_KEY=your_notion_api_key_here
 NOTION_DATABASE_ID=your_notion_database_id_here
+AUTH_PASSWORD=your_secure_password_here
+JWT_SECRET=your_long_random_jwt_secret
 
 # 可选项（如需要覆盖默认值）
 PORT=3000
 MAX_FILE_SIZE=10485760
-# AUTH_PASSWORD=your_secure_password_here
-# JWT_SECRET=your_long_random_jwt_secret
 ```
 
 ### 3. 使用 Docker Compose 部署（推荐）
@@ -80,16 +80,7 @@ docker-compose down
 # 拉取镜像
 docker pull liangyanjun/moments:latest
 
-# 运行容器（基础版本）
-docker run -d \
-  --name moments \
-  -p 3000:3000 \
-  -e NOTION_API_KEY=your_notion_api_key_here \
-  -e NOTION_DATABASE_ID=your_notion_database_id_here \
-  -v $(pwd)/uploads:/app/public/uploads \
-  liangyanjun/moments:latest
-
-# 运行容器（启用密码保护）
+# 运行容器
 docker run -d \
   --name moments \
   -p 3000:3000 \
@@ -108,9 +99,9 @@ docker run -d \
 |--------|------|--------|------|
 | `NOTION_API_KEY` | ✅ | - | Notion API 密钥 |
 | `NOTION_DATABASE_ID` | ✅ | - | Notion 数据库 ID |
-| `AUTH_PASSWORD` | ❌ | - | 访问密码（留空则不启用密码保护） |
-| `JWT_SECRET` | ❌ | 自动生成 | JWT 签名密钥（建议设置强密钥） |
-| `SESSION_EXPIRE_HOURS` | ❌ | `24` | 会话过期时间（小时） |
+| `AUTH_PASSWORD` | ✅ | - | 访问密码 |
+| `JWT_SECRET` | ✅ | - | JWT 签名密钥（建议设置强密钥） |
+| `SESSION_EXPIRE_HOURS` | ✅ | `24` | 会话过期时间（小时） |
 | `PORT` | ❌ | `3000` | 应用端口 |
 | `UPLOAD_DIR` | ❌ | `./public/uploads` | 文件上传目录 |
 | `MAX_FILE_SIZE` | ❌ | `10485760` | 最大文件大小（字节） |
@@ -149,6 +140,8 @@ docker run -d \
    ```
    NOTION_API_KEY=your_notion_api_key_here
    NOTION_DATABASE_ID=your_notion_database_id_here
+   AUTH_PASSWORD=your_secure_password_here
+   JWT_SECRET=your_long_random_jwt_secret
    ```
 
 4. **启动应用**

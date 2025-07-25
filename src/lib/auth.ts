@@ -7,15 +7,17 @@ const AUTH_PASSWORD = process.env.AUTH_PASSWORD;
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
 const SESSION_EXPIRE_HOURS = parseInt(process.env.SESSION_EXPIRE_HOURS || '24');
 
-// 检查是否启用了身份验证
-export function isAuthEnabled(): boolean {
-  return Boolean(AUTH_PASSWORD);
-}
-
 // 验证密码
 export function verifyPassword(inputPassword: string): boolean {
-  if (!AUTH_PASSWORD) return true; // 如果没有设置密码，则允许访问
+  if (!AUTH_PASSWORD) {
+    throw new Error('系统错误：未设置访问密码，请联系管理员配置 AUTH_PASSWORD 环境变量');
+  }
   return inputPassword === AUTH_PASSWORD;
+}
+
+// 检查是否设置了密码
+export function isPasswordConfigured(): boolean {
+  return Boolean(AUTH_PASSWORD);
 }
 
 // 生成JWT token
@@ -74,7 +76,10 @@ export async function setAuthCookie(): Promise<string> {
 
 // 检查用户是否已认证
 export async function isAuthenticated(request?: NextRequest): Promise<boolean> {
-  if (!isAuthEnabled()) return true;
+  // 如果没有配置密码，直接返回 false，强制要求配置
+  if (!isPasswordConfigured()) {
+    return false;
+  }
   
   try {
     let token: string | undefined;

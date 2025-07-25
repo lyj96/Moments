@@ -13,6 +13,7 @@ interface CreateMomentModalProps {
 
 export default function CreateMomentModal({ onClose, onSuccess }: CreateMomentModalProps) {
   const [formData, setFormData] = useState<MomentCreate>({
+    title: '',
     content: '',
     tags: [],
     status: '闪念',
@@ -118,7 +119,7 @@ export default function CreateMomentModal({ onClose, onSuccess }: CreateMomentMo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim() || !formData.content.trim()) {
+    if (!formData.title || !formData.title.trim() || !formData.content.trim()) {
       toast.error('请填写标题和内容');
       return;
     }
@@ -152,6 +153,21 @@ export default function CreateMomentModal({ onClose, onSuccess }: CreateMomentMo
 
         {/* 表单 */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* 标题 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              标题 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={handleInputChange('title')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder="输入标题..."
+              maxLength={100}
+            />
+          </div>
+
           {/* 内容 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

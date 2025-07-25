@@ -152,7 +152,7 @@ function MomentsList({ onRefreshNeeded, filters, config }: { onRefreshNeeded?: n
 }
 
 export default function Home() {
-  const { isAuthenticated, authEnabled, isLoading, login } = useAuth();
+  const { isAuthenticated, isLoading, login } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<FilterOptions>({});
   const [config, setConfig] = useState<UserConfig>(defaultConfig);
@@ -178,8 +178,8 @@ export default function Home() {
     );
   }
 
-  // 如果启用了身份验证且用户未登录，显示登录表单
-  if (authEnabled && !isAuthenticated) {
+  // 如果用户未认证，显示登录表单
+  if (!isAuthenticated) {
     return (
       <>
         <LoginForm onLoginSuccess={login} />

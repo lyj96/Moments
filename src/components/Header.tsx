@@ -9,7 +9,7 @@ interface HeaderProps {
 }
 
 export default function Header({ onCreateClick }: HeaderProps) {
-  const { authEnabled, logout } = useAuth();
+  const { logout } = useAuth();
 
   return (
     <header className="bg-white dark:bg-slate-800 shadow-sm border-b border-gray-200 dark:border-slate-700 sticky top-0 z-50">
@@ -29,16 +29,14 @@ export default function Header({ onCreateClick }: HeaderProps) {
               <span>创建</span>
             </button>
             
-            {/* 如果启用了身份验证，显示登出按钮 */}
-            {authEnabled && (
-              <button
-                onClick={logout}
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-                title="登出"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            )}
+            {/* 登出按钮 - 认证始终启用 */}
+            <button
+              onClick={logout}
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              title="登出"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </div>
