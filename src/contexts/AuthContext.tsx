@@ -23,7 +23,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const checkAuthStatus = async () => {
     try {
-      // 添加时间戳防止缓存
+      // 先检查本地存储的token
+      const localToken = localStorage.getItem('auth-token');
+      if (localToken) {
+        try {
+          // 验证本地token是否有效
+          const response = await fetch('/api/auth/verify-token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token: localToken }),
+          });
+          
+          const data = await response.json();
+          if (data.success && data.valid) {
+            setIsAuthenticated(true);
+            setIsLoading(false);
+            return;
+          } else {
+            // 本地token无效，清除
+            localStorage.removeItem('auth-token');
+          }
+        } catch (error) {
+          // token验证失败，清除本地token
+          localStorage.removeItem('auth-token');
+        }
+      }
+
+      // 如果本地没有有效token，检查服务端cookie
       const response = await fetch(`/api/auth/status?t=${Date.now()}`, {
         method: 'GET',
         credentials: 'include',
@@ -62,6 +90,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const data = await response.json();
       
       if (data.success) {
+        // 清除本地存储的token
+        localStorage.removeItem('auth-token');
         setIsAuthenticated(false);
         toast.success('已安全登出');
       } else {

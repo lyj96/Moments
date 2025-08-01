@@ -191,7 +191,7 @@ export default function MomentCard({ moment, onDelete, onUpdate, config }: Momen
           {/* 内容 */}
           <div className="mb-3">
             <p className="text-slate-800 dark:text-slate-100 whitespace-pre-wrap leading-relaxed text-sm">
-              {moment.content || moment.title}
+              {moment.content || '内容加载失败'}
             </p>
           </div>
 

@@ -36,12 +36,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 设置身份验证cookie
-    await setAuthCookie();
+    // 设置身份验证cookie并获取token
+    const token = await setAuthCookie();
 
     const response = NextResponse.json({
       success: true,
-      message: '登录成功'
+      message: '登录成功',
+      token: token
     });
 
     // 添加缓存控制头

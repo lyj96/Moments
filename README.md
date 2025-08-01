@@ -24,13 +24,14 @@
    - 在 Notion 中创建一个新的数据库
    - 添加以下属性：
      - Title (标题) - Title 类型
-     - Content (内容) - Text 类型  
      - Tags (标签) - Multi-select 类型
      - Status (状态) - Select 类型
      - Images (图片) - Files & media 类型
      - Videos (视频) - Files & media 类型
      - Created (创建时间) - Created time 类型
      - Favorited（收藏）- 复选框类型
+   
+   内容直接存储在页面的段落块中
 
 3. **共享数据库**
    - 点击数据库右上角的 "Share"

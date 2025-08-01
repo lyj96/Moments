@@ -37,6 +37,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
       const data = await response.json();
 
       if (data.success) {
+        // 保存token到本地存储
+        if (data.token) {
+          localStorage.setItem('auth-token', data.token);
+        }
         toast.success('登录成功！');
         onLoginSuccess();
       } else {

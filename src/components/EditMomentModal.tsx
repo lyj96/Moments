@@ -15,7 +15,6 @@ interface EditMomentModalProps {
 
 export default function EditMomentModal({ moment, isOpen, onClose, onUpdate }: EditMomentModalProps) {
   const [formData, setFormData] = useState<MomentUpdate>({
-    title: moment.title || '',
     content: moment.content || '',
     tags: moment.tags || [],
     status: moment.status,
@@ -48,7 +47,6 @@ export default function EditMomentModal({ moment, isOpen, onClose, onUpdate }: E
   useEffect(() => {
     if (isOpen) {
       setFormData({
-        title: moment.title || '',
         content: moment.content || '',
         tags: moment.tags || [],
         status: moment.status,

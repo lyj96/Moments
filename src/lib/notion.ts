@@ -64,14 +64,55 @@ export class NotionService {
         block_id: page.id,
       });
       
-      // 获取第一个段落块的内容
-      if (blocks.results.length > 0) {
-        const firstBlock = blocks.results[0] as any;
-        if (firstBlock.type === 'paragraph' && firstBlock.paragraph?.rich_text) {
-          content = firstBlock.paragraph.rich_text
+      // 遍历所有块，查找内容
+      for (const block of blocks.results) {
+        const blockData = block as any;
+        let blockContent = '';
+        
+        // 处理不同类型的块
+        if (blockData.type === 'paragraph' && blockData.paragraph?.rich_text) {
+          blockContent = blockData.paragraph.rich_text
+            .map((text: any) => text.text?.content || '')
+            .join('');
+        } else if (blockData.type === 'heading_1' && blockData.heading_1?.rich_text) {
+          blockContent = blockData.heading_1.rich_text
+            .map((text: any) => text.text?.content || '')
+            .join('');
+        } else if (blockData.type === 'heading_2' && blockData.heading_2?.rich_text) {
+          blockContent = blockData.heading_2.rich_text
+            .map((text: any) => text.text?.content || '')
+            .join('');
+        } else if (blockData.type === 'heading_3' && blockData.heading_3?.rich_text) {
+          blockContent = blockData.heading_3.rich_text
+            .map((text: any) => text.text?.content || '')
+            .join('');
+        } else if (blockData.type === 'bulleted_list_item' && blockData.bulleted_list_item?.rich_text) {
+          blockContent = blockData.bulleted_list_item.rich_text
+            .map((text: any) => text.text?.content || '')
+            .join('');
+        } else if (blockData.type === 'numbered_list_item' && blockData.numbered_list_item?.rich_text) {
+          blockContent = blockData.numbered_list_item.rich_text
+            .map((text: any) => text.text?.content || '')
+            .join('');
+        } else if (blockData.type === 'to_do' && blockData.to_do?.rich_text) {
+          blockContent = blockData.to_do.rich_text
+            .map((text: any) => text.text?.content || '')
+            .join('');
+        } else if (blockData.type === 'quote' && blockData.quote?.rich_text) {
+          blockContent = blockData.quote.rich_text
             .map((text: any) => text.text?.content || '')
             .join('');
         }
+        
+        if (blockContent.trim()) {
+          content = blockContent.trim();
+          break; // 找到第一个有内容的块就停止
+        }
+      }
+      
+      // 如果仍然没有找到内容，则使用标题
+      if (!content && title) {
+        content = title;
       }
     } catch (error) {
       console.error('获取页面内容失败:', error);
